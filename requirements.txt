@@ -1,0 +1,13 @@
+google-api-python-client
+google-auth
+google-auth-oauthlib
+python-dotenv
+langchain
+langchain-openai
+langchain-core
+langchain-classic
+openai
+flask
+pypdf
+python-docx
+openpyxl

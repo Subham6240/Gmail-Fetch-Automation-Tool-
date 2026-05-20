@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gmail Utility</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --accent: #38bdf8;
+      --accent-2: #22c55e;
+      --danger: #f87171;
+      --border: rgba(148, 163, 184, 0.22);
+      --shadow: 0 16px 40px rgba(2, 6, 23, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #020617 0%, #0f172a 100%);
+      color: var(--text);
+    }
+
+    .container {
+      width: min(1180px, calc(100% - 32px));
+      margin: 24px auto 40px;
+    }
+
+    .hero, .panel, .message-card, .modal-card {
+      background: rgba(17, 24, 39, 0.95);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    .subtitle { color: var(--muted); line-height: 1.6; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .panel { padding: 20px; }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .row-3 {
+      display: grid;
+      grid-template-columns: 1.1fr 0.8fr 0.8fr;
+      gap: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input, textarea, button, a.button { font: inherit; }
+
+    input[type="text"], input[type="number"], textarea, input[type="file"] {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text);
+      outline: none;
+    }
+
+    textarea {
+      min-height: 128px;
+      resize: vertical;
+    }
+
+    input[type="checkbox"] {
+      transform: translateY(1px);
+      margin-right: 8px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button, a.button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 16px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      color: white;
+      background: #2563eb;
+      text-decoration: none;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    button:hover, a.button:hover { transform: translateY(-1px); }
+    button.secondary, a.secondary { background: #334155; }
+    button.success { background: #15803d; }
+    button.warning { background: #7c3aed; }
+    button.info { background: #0369a1; }
+    button.danger { background: #b91c1c; }
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      transform: none;
+    }
+
+    .status {
+      margin: 16px 0 0;
+      min-height: 24px;
+      color: var(--muted);
+    }
+
+    .status.error { color: #fecaca; }
+    .status.success { color: #bbf7d0; }
+
+    #messages {
+      display: grid;
+      gap: 16px;
+    }
+
+    .message-card { padding: 18px; }
+
+    .message-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      text-transform: capitalize;
+      background: rgba(56, 189, 248, 0.16);
+      border: 1px solid rgba(56, 189, 248, 0.22);
+      color: #bae6fd;
+      white-space: nowrap;
+    }
+
+    .meta {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 12px;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+
+    .meta strong { color: #f8fafc; }
+
+    .body-box, .suggestion-box, .attachment-box, .summary-card {
+      background: rgba(15, 23, 42, 0.78);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .body-box {
+      white-space: pre-wrap;
+      line-height: 1.55;
+      margin-bottom: 14px;
+    }
+
+    .attachments {
+      display: grid;
+      gap: 10px;
+      margin: 12px 0 14px;
+    }
+
+    .attachment-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .attachment-name {
+      font-weight: 700;
+      color: #f8fafc;
+      word-break: break-word;
+    }
+
+    .attachment-meta {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .composer {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(148, 163, 184, 0.12);
+      display: none;
+    }
+
+    .composer.active { display: block; }
+
+    .suggestions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    .suggestion-box h4 { margin-bottom: 8px; }
+
+    .suggestion-text, .summary-text {
+      white-space: pre-wrap;
+      color: #dbeafe;
+      min-height: 80px;
+      line-height: 1.5;
+    }
+
+    .summary-results {
+      display: grid;
+      gap: 12px;
+      margin: 12px 0 14px;
+    }
+
+    .summary-card h4 { margin-bottom: 8px; }
+
+    .empty {
+      color: var(--muted);
+      text-align: center;
+      padding: 28px;
+      border: 1px dashed rgba(148, 163, 184, 0.28);
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.42);
+    }
+
+    .small {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 50;
+    }
+
+    .modal-backdrop.active { display: flex; }
+
+    .modal-card {
+      width: min(960px, 100%);
+      max-height: calc(100vh - 36px);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+      padding-bottom: 12px;
+    }
+
+    .preview-frame, .preview-image {
+      width: 100%;
+      min-height: 60vh;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 14px;
+      background: white;
+    }
+
+    .preview-image {
+      object-fit: contain;
+      background: rgba(15, 23, 42, 0.78);
+    }
+
+    .preview-fallback {
+      border: 1px dashed rgba(148, 163, 184, 0.28);
+      border-radius: 14px;
+      padding: 28px;
+      color: var(--muted);
+      text-align: center;
+      background: rgba(15, 23, 42, 0.42);
+    }
+
+    @media (max-width: 760px) {
+      .row, .row-3 { grid-template-columns: 1fr; }
+      .message-top, .modal-head { flex-direction: column; }
+      .preview-frame, .preview-image { min-height: 48vh; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <h1>Gmail Utility Web App</h1>
+      <p class="subtitle">
+        Run <strong>main.py</strong>, let this page open, then fetch messages, preview/download received attachments,
+        generate AI replies, reply to emails, or send a brand-new email with attachments.
+      </p>
+      <div id="globalStatus" class="status"></div>
+    </section>
+
+    <div class="grid">
+      <section class="panel">
+        <h2>Fetch emails</h2>
+        <div class="row-3">
+          <div>
+            <label for="filterEmail">Filter by email address</label>
+            <input id="filterEmail" type="text" placeholder="Leave blank for inbox">
+          </div>
+          <div>
+            <label for="messageCount">How many messages</label>
+            <input id="messageCount" type="number" min="1" max="25" value="5">
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <label class="small"><input id="markAsRead" type="checkbox"> Mark as read</label>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="fetchBtn">Load messages</button>
+          <button id="clearBtn" class="secondary">Clear results</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Send a new email</h2>
+        <form id="sendForm">
+          <div>
+            <label for="sendTo">To</label>
+            <input id="sendTo" name="to" type="text" placeholder="alice@example.com">
+          </div>
+          <div class="row" style="margin-top: 12px;">
+            <div>
+              <label for="sendSubject">Subject</label>
+              <input id="sendSubject" name="subject" type="text" placeholder="Subject">
+            </div>
+            <div>
+              <label for="sendAttachments">Attachments</label>
+              <input id="sendAttachments" name="attachments" type="file" multiple>
+            </div>
+          </div>
+          <div style="margin-top: 12px;">
+            <label for="sendBody">Body</label>
+            <textarea id="sendBody" name="body" placeholder="Write your email here"></textarea>
+          </div>
+          <div class="actions">
+            <button type="submit" class="success">Send email</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <section class="panel">
+      <div style="display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <div>
+          <h2 style="margin-bottom: 4px;">Messages</h2>
+          <div class="small">Use AI suggestions, type your own reply, or open any attachment.</div>
+        </div>
+        <div id="resultSummary" class="small"></div>
+      </div>
+      <div id="messages" style="margin-top: 16px;">
+        <div class="empty">No messages loaded yet.</div>
+      </div>
+    </section>
+  </div>
+
+  <div id="attachmentModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <h3 id="modalTitle" style="margin-bottom: 4px;">Attachment</h3>
+          <div id="modalMeta" class="small"></div>
+        </div>
+        <div class="actions" style="margin-top: 0;">
+          <a id="modalDownload" class="button" href="#" download>Download</a>
+          <button class="secondary" onclick="closeAttachmentModal()">Close</button>
+        </div>
+      </div>
+      <div id="modalPreview"></div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      forcedTo: null,
+      messages: []
+    };
+
+    const globalStatus = document.getElementById('globalStatus');
+    const messagesEl = document.getElementById('messages');
+    const resultSummary = document.getElementById('resultSummary');
+    const modal = document.getElementById('attachmentModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMeta = document.getElementById('modalMeta');
+    const modalPreview = document.getElementById('modalPreview');
+    const modalDownload = document.getElementById('modalDownload');
+
+    function setStatus(message, type = '') {
+      globalStatus.textContent = message || '';
+      globalStatus.className = type ? `status ${type}` : 'status';
+    }
+
+    async function requestJson(url, options = {}) {
+      const response = await fetch(url, {
+        headers: { 'Content-Type': 'application/json' },
+        ...options
+      });
+      const data = await response.json();
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || 'Request failed.');
+      }
+      return data;
+    }
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function formatBytes(bytes) {
+      const size = Number(bytes || 0);
+      if (!size) return 'unknown size';
+      const units = ['B', 'KB', 'MB', 'GB'];
+      let value = size;
+      let unitIndex = 0;
+      while (value >= 1024 && unitIndex < units.length - 1) {
+        value /= 1024;
+        unitIndex += 1;
+      }
+      return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+    }
+
+    function attachmentUrl(messageId, attachment, download = false) {
+      const params = new URLSearchParams({
+        message_id: messageId,
+        filename: attachment.filename || attachment.original_filename || '',
+        index: String(attachment.index ?? ''),
+        download: download ? '1' : '0'
+      });
+      if (attachment.attachmentId) params.set('attachment_id', attachment.attachmentId);
+      if (attachment.partId) params.set('part_id', attachment.partId);
+      return `/api/attachment?${params.toString()}`;
+    }
+
+    function renderAttachments(message) {
+      const attachments = message.attachments || [];
+      if (!attachments.length) return '';
+
+      const items = attachments.map((attachment) => `
+        <div class="attachment-box">
+          <div>
+            <div class="attachment-name">📎 ${escapeHtml(attachment.filename || 'attachment')}</div>
+            <div class="attachment-meta">
+              ${escapeHtml(attachment.mimeType || 'application/octet-stream')} · ${formatBytes(attachment.size)}
+              ${attachment.canPreview ? '' : ' · preview may not be supported'}
+            </div>
+          </div>
+          <button type="button" onclick="openAttachment('${message.id}', ${Number(attachment.index || 0)})">Preview / Download</button>
+        </div>
+      `).join('');
+
+      return `
+        <div class="attachments">
+          <div class="small">${attachments.length} attachment(s)</div>
+          ${items}
+        </div>
+      `;
+    }
+
+    function renderMessages() {
+      if (!state.messages.length) {
+        messagesEl.innerHTML = '<div class="empty">No messages found.</div>';
+        resultSummary.textContent = '';
+        return;
+      }
+
+      resultSummary.textContent = `${state.messages.length} message(s) loaded${state.forcedTo ? ` · replies forced to ${state.forcedTo}` : ''}`;
+
+      messagesEl.innerHTML = state.messages.map((message) => `
+        <article class="message-card" id="message-${message.id}">
+          <div class="message-top">
+            <div>
+              <div class="small">Message #${message.index || ''}</div>
+              <h3>${escapeHtml(message.subject || '(no subject)')}</h3>
+            </div>
+            <span class="badge">${escapeHtml(message.category || 'personal')}</span>
+          </div>
+
+          <div class="meta">
+            <div><strong>From:</strong> ${escapeHtml(message.from || '')}</div>
+            <div><strong>To:</strong> ${escapeHtml(message.to || '')}</div>
+            ${message.reply_to ? `<div><strong>Reply-To:</strong> ${escapeHtml(message.reply_to)}</div>` : ''}
+          </div>
+
+          ${renderAttachments(message)}
+
+          <div class="body-box">${escapeHtml(message.body || '(no plain-text body found)')}</div>
+
+          <div class="actions">
+            <button onclick="openComposer('${message.id}')">Reply</button>
+            <button class="warning" onclick="generateSuggestions('${message.id}')">Generate AI suggestions</button>
+            <button class="info" onclick="summarizeMail('${message.id}')">Summarise mail</button>
+            ${(message.attachments || []).length
+              ? `<button class="info" onclick="summarizeAttachments('${message.id}')">Summarise attachment/s</button>`
+              : `<button class="info" disabled title="No attachments found">Summarise attachment/s</button>`}
+          </div>
+
+          <div class="summary-results" id="summary-${message.id}"></div>
+
+          <div class="composer" id="composer-${message.id}">
+            <div class="small">${state.forcedTo ? `This reply will be sent only to ${escapeHtml(state.forcedTo)}.` : 'Reply target will follow Reply-To or From.'}</div>
+            <div class="suggestions" id="suggestions-${message.id}"></div>
+            <div style="margin-top: 12px;">
+              <label for="reply-text-${message.id}">Reply text</label>
+              <textarea id="reply-text-${message.id}" placeholder="Write or edit your reply"></textarea>
+            </div>
+            <div class="actions">
+              <button class="success" onclick="sendReply('${message.id}')">Send reply</button>
+              <button class="secondary" onclick="closeComposer('${message.id}')">Close</button>
+            </div>
+            <div class="status" id="reply-status-${message.id}"></div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function openComposer(messageId) {
+      const composer = document.getElementById(`composer-${messageId}`);
+      if (composer) composer.classList.add('active');
+    }
+
+    function closeComposer(messageId) {
+      const composer = document.getElementById(`composer-${messageId}`);
+      if (composer) composer.classList.remove('active');
+    }
+
+    function setReplyStatus(messageId, message, type = '') {
+      const el = document.getElementById(`reply-status-${messageId}`);
+      if (!el) return;
+      el.textContent = message || '';
+      el.className = type ? `status ${type}` : 'status';
+    }
+
+    function renderSummaryText(value) {
+      return escapeHtml(value || 'No summary returned.');
+    }
+
+    function setSummary(messageId, html) {
+      const el = document.getElementById(`summary-${messageId}`);
+      if (!el) return;
+      el.innerHTML = html || '';
+    }
+
+    async function summarizeMail(messageId) {
+      setSummary(messageId, `
+        <div class="summary-card">
+          <h4>Mail summary</h4>
+          <div class="summary-text">Summarising mail...</div>
+        </div>
+      `);
+
+      try {
+        const data = await requestJson('/api/summarize-mail', {
+          method: 'POST',
+          body: JSON.stringify({ message_id: messageId })
+        });
+
+        setSummary(messageId, `
+          <div class="summary-card">
+            <h4>Mail summary</h4>
+            <div class="summary-text">${renderSummaryText(data.summary)}</div>
+          </div>
+        `);
+      } catch (error) {
+        setSummary(messageId, `
+          <div class="summary-card">
+            <h4>Mail summary</h4>
+            <div class="summary-text">${escapeHtml(error.message)}</div>
+          </div>
+        `);
+      }
+    }
+
+    async function summarizeAttachments(messageId) {
+      setSummary(messageId, `
+        <div class="summary-card">
+          <h4>Attachment summaries</h4>
+          <div class="summary-text">Summarising attachment/s separately...</div>
+        </div>
+      `);
+
+      try {
+        const data = await requestJson('/api/summarize-attachments', {
+          method: 'POST',
+          body: JSON.stringify({ message_id: messageId })
+        });
+
+        const summaries = data.summaries || [];
+        if (!summaries.length) {
+          setSummary(messageId, `
+            <div class="summary-card">
+              <h4>Attachment summaries</h4>
+              <div class="summary-text">${escapeHtml(data.message || 'This email has no attachments.')}</div>
+            </div>
+          `);
+          return;
+        }
+
+        const cards = summaries.map((item) => `
+          <div class="summary-card">
+            <h4>📎 ${escapeHtml(item.filename || 'attachment')}</h4>
+            <div class="small">${escapeHtml(item.mimeType || 'application/octet-stream')} · ${formatBytes(item.size)}</div>
+            ${item.extraction_note ? `<div class="small">${escapeHtml(item.extraction_note)}</div>` : ''}
+            <div class="summary-text" style="margin-top: 10px;">${renderSummaryText(item.summary)}</div>
+          </div>
+        `).join('');
+
+        setSummary(messageId, cards);
+      } catch (error) {
+        setSummary(messageId, `
+          <div class="summary-card">
+            <h4>Attachment summaries</h4>
+            <div class="summary-text">${escapeHtml(error.message)}</div>
+          </div>
+        `);
+      }
+    }
+
+    function openAttachment(messageId, attachmentIndex) {
+      const message = state.messages.find((item) => item.id === messageId);
+      const attachment = message?.attachments?.find((item) => Number(item.index) === Number(attachmentIndex));
+      if (!message || !attachment) {
+        setStatus('Attachment was not found in the loaded messages.', 'error');
+        return;
+      }
+
+      const previewUrl = attachmentUrl(messageId, attachment, false);
+      const downloadUrl = attachmentUrl(messageId, attachment, true);
+      const mime = String(attachment.mimeType || '').toLowerCase();
+
+      modalTitle.textContent = attachment.filename || 'Attachment';
+      modalMeta.textContent = `${attachment.mimeType || 'application/octet-stream'} · ${formatBytes(attachment.size)}`;
+      modalDownload.href = downloadUrl;
+      modalDownload.setAttribute('download', attachment.filename || 'attachment');
+
+      if (mime.startsWith('image/')) {
+        modalPreview.innerHTML = `<img class="preview-image" alt="${escapeHtml(attachment.filename || 'attachment preview')}" src="${previewUrl}">`;
+      } else if (attachment.canPreview || mime === 'application/pdf' || mime.startsWith('text/')) {
+        modalPreview.innerHTML = `<iframe class="preview-frame" title="${escapeHtml(attachment.filename || 'attachment preview')}" src="${previewUrl}"></iframe>`;
+      } else {
+        modalPreview.innerHTML = `
+          <div class="preview-fallback">
+            This file type may not preview in the browser. Use the Download button to save it.
+          </div>
+        `;
+      }
+
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeAttachmentModal() {
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+      modalPreview.innerHTML = '';
+    }
+
+    async function loadMessages() {
+      const emailAddress = document.getElementById('filterEmail').value.trim();
+      const n = Number(document.getElementById('messageCount').value || 5);
+      const markAsRead = document.getElementById('markAsRead').checked;
+
+      setStatus('Loading messages...');
+      try {
+        const data = await requestJson('/api/messages', {
+          method: 'POST',
+          body: JSON.stringify({
+            email_address: emailAddress,
+            n,
+            mark_as_read: markAsRead
+          })
+        });
+        state.messages = data.messages || [];
+        state.forcedTo = data.forced_to || null;
+        renderMessages();
+        setStatus('Messages loaded.', 'success');
+      } catch (error) {
+        state.messages = [];
+        renderMessages();
+        setStatus(error.message, 'error');
+      }
+    }
+
+    async function generateSuggestions(messageId) {
+      openComposer(messageId);
+      setReplyStatus(messageId, 'Generating AI suggestions...');
+      try {
+        const data = await requestJson('/api/reply-suggestions', {
+          method: 'POST',
+          body: JSON.stringify({
+            message_id: messageId,
+            forced_to: state.forcedTo
+          })
+        });
+
+        const suggestionsEl = document.getElementById(`suggestions-${messageId}`);
+        const textarea = document.getElementById(`reply-text-${messageId}`);
+        const formal = data.suggestions?.formal || '';
+        const warm = data.suggestions?.warm || '';
+
+        suggestionsEl.innerHTML = `
+          <div class="suggestion-box">
+            <h4>Formal / professional</h4>
+            <div class="suggestion-text">${escapeHtml(formal || 'No suggestion returned.')}</div>
+            <div class="actions"><button type="button" onclick="useSuggestion('${messageId}', 'formal')">Use this</button></div>
+          </div>
+          <div class="suggestion-box">
+            <h4>Warm / friendly</h4>
+            <div class="suggestion-text">${escapeHtml(warm || 'No suggestion returned.')}</div>
+            <div class="actions"><button type="button" onclick="useSuggestion('${messageId}', 'warm')">Use this</button></div>
+          </div>
+        `;
+
+        textarea.dataset.formal = formal;
+        textarea.dataset.warm = warm;
+        if (!textarea.value.trim()) {
+          textarea.value = formal || warm;
+        }
+        setReplyStatus(messageId, 'Suggestions ready.', 'success');
+      } catch (error) {
+        setReplyStatus(messageId, error.message, 'error');
+      }
+    }
+
+    function useSuggestion(messageId, tone) {
+      const textarea = document.getElementById(`reply-text-${messageId}`);
+      const value = textarea?.dataset?.[tone] || '';
+      if (textarea && value) {
+        textarea.value = value;
+      }
+    }
+
+    async function sendReply(messageId) {
+      const textarea = document.getElementById(`reply-text-${messageId}`);
+      const replyText = textarea?.value?.trim() || '';
+      if (!replyText) {
+        setReplyStatus(messageId, 'Reply text cannot be empty.', 'error');
+        return;
+      }
+
+      setReplyStatus(messageId, 'Sending reply...');
+      try {
+        await requestJson('/api/reply', {
+          method: 'POST',
+          body: JSON.stringify({
+            message_id: messageId,
+            reply_text: replyText,
+            forced_to: state.forcedTo
+          })
+        });
+        setReplyStatus(messageId, 'Reply sent successfully.', 'success');
+      } catch (error) {
+        setReplyStatus(messageId, error.message, 'error');
+      }
+    }
+
+    async function sendEmail(event) {
+      event.preventDefault();
+      const form = document.getElementById('sendForm');
+      const formData = new FormData(form);
+
+      setStatus('Sending email...');
+      try {
+        const response = await fetch('/api/send-email', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await response.json();
+        if (!response.ok || !data.ok) {
+          throw new Error(data.error || 'Send failed.');
+        }
+        form.reset();
+        setStatus('Email sent successfully.', 'success');
+      } catch (error) {
+        setStatus(error.message, 'error');
+      }
+    }
+
+    document.getElementById('fetchBtn').addEventListener('click', loadMessages);
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      state.messages = [];
+      state.forcedTo = null;
+      renderMessages();
+      setStatus('Results cleared.');
+    });
+    document.getElementById('sendForm').addEventListener('submit', sendEmail);
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) closeAttachmentModal();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeAttachmentModal();
+    });
+
+    renderMessages();
+  </script>
+</body>
+</html>
