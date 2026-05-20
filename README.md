@@ -18,8 +18,8 @@ This project is a Python-based Gmail assistant that uses the Gmail API, Google O
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/RahulDas1-3/fetch_gmails_project3.git
-cd fetch_gmails_project3
+git clone https://github.com/Subham6240/Gmail-Fetch-Automation-Tool.git
+cd Gmail-Fetch-Automation-Tool
 ```
 
 ### 2. Install dependencies
